@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Download files</title>
+  <style>
+    body{
+      font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      margin:0;
+      background:linear-gradient(135deg,#f9d423,#ff4e50,#8e54e9);
+      background-size:400% 400%;
+      animation:moveBg 12s ease infinite;
+    }
+
+    @keyframes moveBg {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    .card{
+      width:min(1100px,96%);
+      background:white;
+      padding:24px;
+      border-radius:16px;
+      box-shadow:0 10px 40px rgba(20,30,60,0.20);
+      position:relative;
+      backdrop-filter:blur(10px);
+    }
+
+    .logo{
+      display:block;
+      margin:0 auto 16px auto;
+      width:90px;
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:22px;
+      text-align:center;
+    }
+    p{text-align:center;margin:0 0 12px;color:#556}
+
+    .controls{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+    .item{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid #eef2f7;border-radius:8px;background:#fafbff}
+    .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .btn{background:#0366d6;color:white;padding:8px 12px;border-radius:8px;text-decoration:none;border:0;cursor:pointer}
+    .ghost{background:transparent;color:#0366d6;border:1px solid #dfe9fb}
+    .muted{color:#667;font-size:13px}
+    .progress{height:8px;background:#eef2f7;border-radius:8px;overflow:hidden}
+    .progress > i{display:block;height:100%;width:0%;background:#0366d6}
+    footer{margin-top:14px;color:#667;font-size:13px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <!-- Namaste Logo -->
+    <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#ff914d" d="M32 2c16.6 0 30 13.4 30 30S48.6 62 32 62 2 48.6 2 32 15.4 2 32 2z"/>
+      <path fill="#fff" d="M32 12c-4 6-10 10-10 18s6 14 10 14 10-6 10-14-6-12-10-18z"/>
+    </svg>
+
+    <h1>Direct downloads</h1>
+    <p>Click a button to download a single file, or use <strong>Download all</strong> to get everything as a ZIP.</p>
+
+    <div class="controls">
+      <button id="downloadAll" class="btn">Download all as ZIP</button>
+      <button id="downloadZipIfExists" class="btn ghost">Prefer pre-made all-files.zip</button>
+      <div style="flex:1"></div>
+      <div class="muted">Files folder: <code>./files/</code></div>
+    </div>
+
+    <div id="status" class="muted" style="margin-bottom:10px">Ready</div>
+    <div class="progress" style="margin-bottom:12px"><i id="bar"></i></div>
+
+    <div id="list" class="grid"></div>
+
+    <footer>Upload ZIP as <code>files/all-files.zip</code> if already available. Page will auto-detect.</footer>
+  </div>
+
+  <!-- JSZip and FileSaver CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+  <script>
+    const filenames = [
+      "Background Colour SharedPreferences","colorMenu","contact scan","countincrise",
+      "CRUD sqlite app user","emailLogin","Generate Dynamic List","IMG animation","Login",
+      "msg app","music play pose","notification","P1","Phone Dialer App","prime notification",
+      "progressBar","Simple Audio Player (Play, PauseResume, Stop)","Simple Video Player using VideoView",
+      "SQLite Authentication App (Login & Register)","User Registration App","Web Browser using WebView",
+      "location","SavedInstanceState App","SharedPreference App","Tab Host Index"
+    ];
+
+    const list = document.getElementById('list');
+    const status = document.getElementById('status');
+    const bar = document.getElementById('bar');
+
+    function escapeFilenameForUrl(name){
+      return './files/' + encodeURIComponent(name);
+    }
+
+    async function forceDownload(relPath, suggestedName) {
+      try {
+        status.textContent = 'Downloading "' + suggestedName + '"...';
+        const resp = await fetch(relPath);
+        if (!resp.ok) throw new Error('Network response was not ok');
+        const blob = await resp.blob();
+        saveAs(blob, suggestedName);
+        status.textContent = 'Downloaded: ' + suggestedName;
+      } catch (err) {
+        status.textContent = 'Download failed: ' + err.message;
+        alert('Download failed: ' + err.message + "\nMake sure the files exist in files/ folder.");
+      }
+    }
+
+    filenames.forEach(name => {
+      const rel = escapeFilenameForUrl(name);
+      const item = document.createElement('div');
+      item.className = 'item';
+
+      const span = document.createElement('div');
+      span.className = 'name';
+      span.textContent = name;
+
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = 'Download';
+      btn.addEventListener('click', () => forceDownload(rel, name));
+
+      item.appendChild(span);
+      item.appendChild(btn);
+      list.appendChild(item);
+    });
+
+  </script>
+</body>
+</html>
